@@ -388,25 +388,28 @@ function createNavigationLogo(logoImagePath){
 
 function loadScreen(screen){
   if(screen === SUMMARY){
-    // TODO: logic to load summary screen
-    // remove the ul of order divs
-    //screen = SUMMARY;
     if(document.getElementsByTagName("TABLE").length == 0){
-      var unorderedLists = document.getElementsByTagName("UL");
-      for (var i = unorderedLists.length - 1; i >= 0; i -= 1)
-        if(unorderedLists[i].id === 'orders-ul') unorderedLists[i].parentNode.removeChild(unorderedLists[i]);
+      var orders = document.getElementsByTagName("UL");
+      for (var i = orders.length - 1; i >= 0; i -= 1)
+        if(orders[i].id === 'orders-ul') orders[i].parentNode.removeChild(orders[i]);
+
+      var forms = document.getElementsByTagName("FORM");
+      for (var i=forms.length-1; i>=0;i-=1)
+         if (forms[i]) forms[i].parentNode.removeChild(forms[i]);
+
       loadSummary();
     }
   }
   else if(screen === ORDERS){
-    //alert('loading orders ... ');
     var password = prompt("Admin password: ");
     if(password === 'yummy1234'){
-      // TODO: logic to load orders screen
-      // remove the summary table
       var tables = document.getElementsByTagName("TABLE");
       for (var i=tables.length-1; i>=0;i-=1)
          if (tables[i]) tables[i].parentNode.removeChild(tables[i]);
+
+      var forms = document.getElementsByTagName("FORM");
+      for (var i=forms.length-1; i>=0;i-=1)
+         if (forms[i]) forms[i].parentNode.removeChild(forms[i]);
 
       var buttons = document.getElementsByTagName("BUTTON");
       for (var i=buttons.length-1; i>=0;i-=1)
