@@ -1,6 +1,22 @@
 const SUMMARY = 'Summary';
 const ORDERS = 'Orders';
 
+const firebaseConfig = {
+  apiKey: "AIzaSyBj4efERJ9RgrXknZMbxcygkzap9SHj_FM",
+  authDomain: "hello-adorable-sweets.firebaseapp.com",
+  projectId: "hello-adorable-sweets",
+  storageBucket: "hello-adorable-sweets.appspot.com",
+  messagingSenderId: "146232224512",
+  appId: "1:146232224512:web:f3f25dfdf0e489b06c61e5"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+
+console.log(db.collection('orders').get());
+
 function initialize(){
   initializeMenu();
   loadSummary();
@@ -48,74 +64,89 @@ function loadOrders(){
   // mock getting data from firebase
   let orders = []; // initially empty
 
-  // request all data in the orders collection from firebase (GET)
+  // request all data in the orders collection from firebase
 
-  // TODO: fix the specific options
-  // TODO: make the list grow vertically, not horizontally
+  db.collection('orders').get().then((querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      let name = doc.data().name;
+      let phone = doc.data().phone;
+      let items = doc.data().items;
+      let order = {'name' : name, 'phone': phone, 'items' : items};
+      orders.push(order);
+    });
 
+
+    // create the orders list
+    let ordersUl = document.createElement('ul');
+    ordersUl.className = 'orders-ul';
+    ordersUl.id = 'orders-ul';
+
+    orders.forEach(function(order){
+      let orderLi = document.createElement('li');
+      orderLi.className = 'order-li';
+      let orderDiv = document.createElement('div');
+      orderDiv.className = 'order-div';
+      let orderName = document.createElement('p');
+      orderName.className = 'order-p';
+      orderName.innerText = order.name;
+      let orderPhone = document.createElement('p');
+      orderPhone.className = 'order-p';
+      orderPhone.innerText = order.phone;
+      let orderPickup = document.createElement('p');
+      orderPickup.className = 'order-p';
+      orderPickup.innerText = 'Due: ' + order.pickup;
+      let orderInfo = document.createElement('p');
+      orderInfo.className = 'order-p';
+      let orderItems = order.items;
+      let prettyInfo = '';
+      for(let itemName in orderItems){
+        let amounts = orderItems[itemName];
+        let total = 0;
+        for(color in amounts){
+          total += amounts[color];
+        }
+      
+        prettyInfo += itemName.toUpperCase() + ' ( Total = ' + total + ' )' + '\n';
+
+        console.log(amounts);
+        for(color in amounts){
+          prettyInfo += '[' + color + ': ' + amounts[color] + '] ';
+        }
+        prettyInfo += '\n\n';
+      }
+      orderInfo.innerText = prettyInfo;
+      orderDiv.appendChild(orderName);
+      orderDiv.appendChild(orderPhone);
+      orderDiv.appendChild(orderInfo);
+      orderDiv.appendChild(orderPickup);
+      let finishButton = document.createElement('button');
+      finishButton.className = 'pink-btn centered-btn';
+      finishButton.innerText = 'Finish';
+      orderDiv.appendChild(finishButton);
+      orderLi.appendChild(orderDiv);
+      ordersUl.appendChild(orderLi);
+    });
+
+    document.getElementById('main').appendChild(ordersUl);
+  });
+  
+  /*
   let sampleData = {
     'name': 'Julian Alberto',
+    'phone' : '209-499-6130',
     'items': {
       'Cakesickles': {'Tree' : 0, 'Snowman' : 0, 'Raindeer' : 0, 'Peppermint' : 0, 'Blue':0, 'Green' : 0},
       'Cookies' : {'Raindeer' : 0, 'Snowman' : 0, 'Peppermint' : 0, 'Blue' : 0, 'Green' : 0},
       'Cocoa Bombs' : {'G/Pearls' : 0, 'W/Peppermint' : 0, 'W/SnowFlakes' : 0, 'W/Snowman' : 0},
       'Marshmallows' : {'Snowman' : 0, 'Cup' : 0, 'Raindeer' : 0, 'Santa' : 0, 'Blush' : 0}
     },
-    'comments': 'Make the backside a little thicker than usual on the cakesickles'
+    'pickup': '12/25/20'
   };
 
   orders.push(sampleData);
   orders.push(sampleData);
   console.log(orders);
-
-  // create the orders list
-  let ordersUl = document.createElement('ul');
-  ordersUl.className = 'orders-ul';
-  ordersUl.id = 'orders-ul';
-
-  orders.forEach(function(order){
-    let orderLi = document.createElement('li');
-    orderLi.className = 'order-li';
-    let orderDiv = document.createElement('div');
-    orderDiv.className = 'order-div';
-    let orderName = document.createElement('p');
-    orderName.className = 'order-p';
-    orderName.innerText = order.name;
-    let orderInfo = document.createElement('p');
-    orderInfo.className = 'order-p';
-    let orderItems = order.items;
-    let prettyInfo = '';
-    for(let itemName in orderItems){
-      let amounts = orderItems[itemName];
-      let total = 0;
-      for(color in amounts){
-        total += amounts[color];
-      }
-    
-      prettyInfo += itemName.toUpperCase() + ' ( Total = ' + total + ' )' + '\n';
-
-      console.log(amounts);
-      for(color in amounts){
-        prettyInfo += '[' + color + ': ' + amounts[color] + '] ';
-      }
-      prettyInfo += '\n\n';
-    }
-    orderInfo.innerText = prettyInfo;
-    let orderComments = document.createElement('p');
-    orderComments.className = 'order-p';
-    orderComments.innerText = 'Comments: ' + sampleData.comments;
-    orderDiv.appendChild(orderName); //also need to append other data and (green) finish button!
-    orderDiv.appendChild(orderInfo);
-    orderDiv.appendChild(orderComments);
-    let finishButton = document.createElement('button');
-    finishButton.className = 'pink-btn centered-btn';
-    finishButton.innerText = 'Finish';
-    orderDiv.appendChild(finishButton);
-    orderLi.appendChild(orderDiv);
-    ordersUl.appendChild(orderLi);
-  });
-
-  document.getElementById('main').appendChild(ordersUl);
+  */
 }
 
 function createViewMoreButton(itemName){
@@ -288,14 +319,37 @@ function createOrderForm(){
     else if(itemName === 'Marshmallows'){
       orderInputs = ['Snowman', 'Cup', 'Raindeer', 'Santa', 'Blush'];
     }
-    form.appendChild(createOrderInputs(orderInputs));
+    form.appendChild(createOrderInputs(orderInputs, itemName));
   });
 
   let submitButton = createSubmitOrderButton();
-  // TODO do REST call to put the order in the orders collection
+  submitButton.type = 'button';
   submitButton.onclick = function(){
-    let order = ''; // create the JSON string to send to firebase as PUT request
+    alert('Thank you for your order! (: ');
+
+    // Construct the JSON string for the REST call to firebase
+    let name = document.getElementById('name').value; // YES, this works!
+    let phone = document.getElementById('phone').value;
+
+    let itemToQuantities = {};
+
+    itemNames.forEach(function(itemName){
+      let unorderedLists = document.getElementById(itemName);
+      let listItems = unorderedLists.children;
+      itemToQuantities[itemName] = {};
+      for(let i = 0; i < listItems.length; i++){
+        let listItem = listItems[i];
+        let input = listItem.children[0];
+        itemToQuantities[itemName][input.id] = Number(input.value);
+      }
+    });
+
+    order = {'name' : name, 'phone' : phone, 'items' : itemToQuantities};
+
     placeOrder(order);
+
+    // remove the form and load summary
+    
   }
 
   form.appendChild(submitButton);
@@ -308,6 +362,7 @@ function createOrderNameInput(){
   let inputListItem = document.createElement('li');
   inputListItem.className = 'place-order-li';
   let input = document.createElement('input');
+  input.id = 'name';
   input.required = true;
   input.className = 'place-order-input place-order-input-name';
   let sideText = document.createElement('p');
@@ -323,6 +378,7 @@ function createOrderPhoneInput(){
   let inputListItem = document.createElement('li');
   inputListItem.className = 'place-order-li';
   let input = document.createElement('input');
+  input.id = 'phone';
   input.required = true;
   input.type = 'tel';
   input.pattern= '[0-9]{3}-[0-9]{3}-[0-9]{4}';
@@ -335,13 +391,15 @@ function createOrderPhoneInput(){
   return inputList;
 }
 
-function createOrderInputs(listOfInputs){
+function createOrderInputs(listOfInputs, itemName){
   let inputList = document.createElement('ul');
+  inputList.id = itemName;
 
   listOfInputs.forEach(function(inputName){
     let inputListItem = document.createElement('li');
     inputListItem.className = 'place-order-li';
     let input = document.createElement('input');
+    input.id = inputName;
     input.type = 'number';
     input.min = '0';
     input.max = '10';
@@ -366,7 +424,9 @@ function createSubmitOrderButton(){
 
 // JSON string
 function placeOrder(order){
-  // axios.put('orders/', order)
+  // TODO: Error checking before adding the order!
+  // BUG: Why is it only going through if a field was missing?
+  db.collection('orders').add(order);
 }
 
 function createItemHeader(itemName){
