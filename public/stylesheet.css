@@ -1,10 +1,12 @@
 /*  padding is North, East, South, West */
-
+/*
+background-color: #D9AFD9;
+background-image: linear-gradient(0deg, #D9AFD9 0%, #97D9E1 100%);
+*/
 #main{
   margin: 0;
-  background-color: #D9AFD9;
-  background-image: linear-gradient(0deg, #D9AFD9 0%, #97D9E1 100%);
-  background-repeat: no-repeat;
+
+  font-family: 'Pacifico', cursive;
 }
 
 .navigation-ul{
@@ -38,7 +40,6 @@
   border: 0.25rem solid pink;
   border-radius: .5rem;
   font-size: 2rem;
-  font-family: Helvetica;
   outline: none;
 }
 
@@ -65,7 +66,6 @@
 
 .summary-table-row{
   font-size: 2rem;
-  font-family: Helvetica;
 }
 
 .summary-table-data{
@@ -74,12 +74,10 @@
 
 .orders-ul{
   justify-content: center;
-  width: 50%;
   padding: 0.5rem 0 0 0;
 
   margin: 0;
   position: absolute;
-  left: 37%;
 
   margin-block-start: 0;
   margin-block-end: 0;
@@ -96,7 +94,6 @@
 
 .order-div{
   border-radius: 0.5rem;
-  width: 25rem;
   background: white;
   border: 0.25rem solid pink;
   border-radius: .5rem;
@@ -107,7 +104,6 @@
   padding: 0.25rem;
   text-align: center;
   color: black;
-  font-family: Helvetica;
 }
 
 .place-order-form{
@@ -115,22 +111,17 @@
   width: 50%;
   padding: 0.5rem 0 0 0;
 
-  margin: 0;
+  margin: 1rem;
   position: absolute;
-  left: 45%;
 
   margin-block-start: 0;
   margin-block-end: 0;
-  margin-inline-start: 0px;
   margin-inline-end: 0px;
   padding-inline-start: 0;
-
-  font-family: Helvetica;
 
 }
 
 .place-order-header{
-  font-family: Helvetica;
 }
 
 .place-order-li{
@@ -140,12 +131,14 @@
 
 .place-order-input{
   outline: none;
-  background: white;
   color: black;
   font-size: 2rem;
   width: 5rem;
   border-radius: 0.5rem;
   text-align: center;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #000000;
 }
 
 .place-order-input-name{
