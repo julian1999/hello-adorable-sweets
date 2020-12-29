@@ -1,136 +1,219 @@
 const SUMMARY = 'Summary';
 const ORDERS = 'Orders';
 
+// insert config here
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
 function initialize(){
   initializeMenu();
   loadSummary();
 }
 
 function loadSummary(){
-  // later, load stuff in from firebase!
-  let summary_table = document.createElement('table');
-  summary_table.className = 'summary-table';
-  summary_table.id = 'summary-table';
-  let header_tr = document.createElement('tr');
-  header_tr.className = 'summary-table-row';
 
-  // creating the header row cells
-  let item_th = createTableCell('th', 'Item');
-  let quantity_th = createTableCell('th', 'Quantity');
-  header_tr.appendChild(item_th);
-  header_tr.appendChild(quantity_th);
-  summary_table.appendChild(header_tr);
+  let itemQuantities = {'Cakesickles' : 0, 'Cookies' : 0, 'Cocoa Bombs' : 0, 'Marshmallows' : 0};
+  let specifics = {'Cakesickles' : {}, 'Cookies' : {}, 'Cocoa Bombs' : {}, 'Marshmallows' : {}};
 
-  let items = ['Cakesickles', 'Cookies', 'Cocoa Bombs', 'Marshmallows'];
+  db.collection('orders').get().then((querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      let items = doc.data().items;
+      // iterate through each item
+      let cakesicklesQuantities = items['Cakesickles'];
+      for(let key in cakesicklesQuantities){
+        itemQuantities['Cakesickles'] += cakesicklesQuantities[key];
+        if(isNaN(specifics['Cakesickles'][key])){
+          specifics['Cakesickles'][key] = cakesicklesQuantities[key];
+        }
+        else{
+          specifics['Cakesickles'][key] += cakesicklesQuantities[key]
+        }
+      }
+      let cookiesQuantities = items['Cookies'];
+      for(let key in cookiesQuantities){
+        itemQuantities['Cookies'] += cookiesQuantities[key];
+        if(isNaN(specifics['Cookies'][key])){
+          specifics['Cookies'][key] = cookiesQuantities[key];
+        }
+        else{
+          specifics['Cookies'][key] += cookiesQuantities[key]
+        }
+      }
+      let cocoaBombsQuantities = items['Cocoa Bombs'];
+      for(let key in cocoaBombsQuantities){
+        itemQuantities['Cocoa Bombs'] += cocoaBombsQuantities[key];
+        if(isNaN(specifics['Cocoa Bombs'][key])){
+          specifics['Cocoa Bombs'][key] = cocoaBombsQuantities[key];
+        }
+        else{
+          specifics['Cocoa Bombs'][key] += cocoaBombsQuantities[key];
+        }
+      }
+      let marshmallowsQuantities = items['Marshmallows'];
+      for(let key in marshmallowsQuantities){
+        itemQuantities['Marshmallows'] += marshmallowsQuantities[key];
+        if(isNaN(specifics['Marshmallows'][key])){
+          specifics['Marshmallows'][key] = marshmallowsQuantities[key];
+        }
+        else{
+          specifics['Marshmallows'][key] += marshmallowsQuantities[key];
+        }
+      }
+    });
 
-  items.forEach(function(item){
-    let item_td = createTableCell('td', item);
-    let quantity_td = createTableCell('td', '0'); //load from firebase later on
-    let first_dropdown_td = createViewMoreButton(item);
+    let summary_table = document.createElement('table');
+    summary_table.className = 'summary-table';
+    summary_table.id = 'summary-table';
+    let header_tr = document.createElement('tr');
+    header_tr.className = 'summary-table-row';
 
-    let item_tr = document.createElement('tr');
-    item_tr.className = 'summary-table-row';
-    item_tr.appendChild(item_td);
-    item_tr.appendChild(quantity_td);
-    item_tr.appendChild(first_dropdown_td);
+    // creating the header row cells
+    let item_th = createTableCell('th', 'Item');
+    let quantity_th = createTableCell('th', 'Quantity');
+    header_tr.appendChild(item_th);
+    header_tr.appendChild(quantity_th);
+    summary_table.appendChild(header_tr);
 
-    summary_table.appendChild(item_tr);
+    let items = ['Cakesickles', 'Cookies', 'Cocoa Bombs', 'Marshmallows'];
+
+    items.forEach(function(item){
+      let item_td = createTableCell('td', item);
+      let quantity_td = createTableCell('td', itemQuantities[item]); //load from firebase later on
+      let relevantSpecifics = {};
+      let first_dropdown_td = createViewMoreButton(specifics[item], item);
+
+      let item_tr = document.createElement('tr');
+      item_tr.className = 'summary-table-row';
+      item_tr.appendChild(item_td);
+      item_tr.appendChild(quantity_td);
+      item_tr.appendChild(first_dropdown_td);
+
+      summary_table.appendChild(item_tr);
+    });
+
+    // update the background
+    document.getElementById('main').style.backgroundColor = '#D9AFD9';
+    document.getElementById('main').style.backgroundImage = 'linear-gradient(0deg, #D9AFD9 0%, #97D9E1 100%)';
+    document.getElementById('main').appendChild(summary_table);
+    document.getElementById('main').appendChild(createPlaceOrderButton());
+
+
   });
 
-  document.getElementById('main').appendChild(summary_table);
-  document.getElementById('main').appendChild(createPlaceOrderButton());
+  // loading screen
+  document.getElementById('main').style.backgroundImage = 'url("loading.gif")';
+  document.getElementById('main').style.backgroundRepeat = 'no-repeat';
+  document.getElementById('main').style.backgroundSize = 'cover';
+
+
 
 }
 
-// Idea: When you finish an order, it should decrement the totals
-// from summary by that amount for each item quantity in that order!
 function loadOrders(){
-  // mock getting data from firebase
   let orders = []; // initially empty
 
-  // request all data in the orders collection from firebase (GET)
+  // request all data in the orders collection from firebase
 
-  // TODO: fix the specific options
-  // TODO: make the list grow vertically, not horizontally
+  db.collection('orders').get().then((querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      let name = doc.data().name;
+      let phone = doc.data().phone;
+      let pickup = doc.data().pickup;
+      let items = doc.data().items;
+      let order = {'name' : name, 'phone': phone, 'pickup' : pickup, 'items' : items, 'id' : doc.id};
+      orders.push(order);
+    });
 
-  let sampleData = {
-    'name': 'Julian Alberto',
-    'items': {
-      'Cakesickles': {'Tree' : 0, 'Snowman' : 0, 'Raindeer' : 0, 'Peppermint' : 0, 'Blue':0, 'Green' : 0},
-      'Cookies' : {'Raindeer' : 0, 'Snowman' : 0, 'Peppermint' : 0, 'Blue' : 0, 'Green' : 0},
-      'Cocoa Bombs' : {'G/Pearls' : 0, 'W/Peppermint' : 0, 'W/SnowFlakes' : 0, 'W/Snowman' : 0},
-      'Marshmallows' : {'Snowman' : 0, 'Cup' : 0, 'Raindeer' : 0, 'Santa' : 0, 'Blush' : 0}
-    },
-    'comments': 'Make the backside a little thicker than usual on the cakesickles'
-  };
 
-  orders.push(sampleData);
-  orders.push(sampleData);
-  console.log(orders);
+    // create the orders list
+    let ordersUl = document.createElement('ul');
+    ordersUl.className = 'orders-ul';
+    ordersUl.id = 'orders-ul';
 
-  // create the orders list
-  let ordersUl = document.createElement('ul');
-  ordersUl.className = 'orders-ul';
-  ordersUl.id = 'orders-ul';
+    orders.forEach(function(order){
+      let orderLi = document.createElement('li');
+      orderLi.className = 'order-li';
+      orderLi.id = order['id'];
+      let orderDiv = document.createElement('div');
+      orderDiv.className = 'order-div';
+      let orderName = document.createElement('p');
+      orderName.className = 'order-p';
+      orderName.innerText = order.name;
+      let orderPhone = document.createElement('p');
+      orderPhone.className = 'order-p';
+      orderPhone.innerText = order.phone;
+      let orderPickup = document.createElement('p');
+      orderPickup.className = 'order-p';
+      orderPickup.innerText = 'Due: ' + order.pickup;
+      let orderInfo = document.createElement('p');
+      orderInfo.className = 'order-p';
+      let orderItems = order.items;
+      let prettyInfo = '';
+      for(let itemName in orderItems){
+        let amounts = orderItems[itemName];
+        let total = 0;
+        for(color in amounts){
+          total += amounts[color];
+        }
+      
+        prettyInfo += itemName.toUpperCase() + ' ( Total = ' + total + ' )' + '\n';
 
-  orders.forEach(function(order){
-    let orderLi = document.createElement('li');
-    orderLi.className = 'order-li';
-    let orderDiv = document.createElement('div');
-    orderDiv.className = 'order-div';
-    let orderName = document.createElement('p');
-    orderName.className = 'order-p';
-    orderName.innerText = order.name;
-    let orderInfo = document.createElement('p');
-    orderInfo.className = 'order-p';
-    let orderItems = order.items;
-    let prettyInfo = '';
-    for(let itemName in orderItems){
-      let amounts = orderItems[itemName];
-      let total = 0;
-      for(color in amounts){
-        total += amounts[color];
+        for(color in amounts){
+          prettyInfo += '[' + color + ': ' + amounts[color] + '] ';
+        }
+        prettyInfo += '\n\n';
       }
-    
-      prettyInfo += itemName.toUpperCase() + ' ( Total = ' + total + ' )' + '\n';
-
-      console.log(amounts);
-      for(color in amounts){
-        prettyInfo += '[' + color + ': ' + amounts[color] + '] ';
+      orderInfo.innerText = prettyInfo;
+      orderDiv.appendChild(orderName);
+      orderDiv.appendChild(orderPhone);
+      orderDiv.appendChild(orderInfo);
+      orderDiv.appendChild(orderPickup);
+      let finishButton = document.createElement('button');
+      finishButton.className = 'pink-btn centered-btn';
+      finishButton.innerText = 'Finish';
+      finishButton.onclick = function(){
+        finishOrder(order['id']);
       }
-      prettyInfo += '\n\n';
-    }
-    orderInfo.innerText = prettyInfo;
-    let orderComments = document.createElement('p');
-    orderComments.className = 'order-p';
-    orderComments.innerText = 'Comments: ' + sampleData.comments;
-    orderDiv.appendChild(orderName); //also need to append other data and (green) finish button!
-    orderDiv.appendChild(orderInfo);
-    orderDiv.appendChild(orderComments);
-    let finishButton = document.createElement('button');
-    finishButton.className = 'pink-btn centered-btn';
-    finishButton.innerText = 'Finish';
-    orderDiv.appendChild(finishButton);
-    orderLi.appendChild(orderDiv);
-    ordersUl.appendChild(orderLi);
+      orderDiv.appendChild(finishButton);
+      orderLi.appendChild(orderDiv);
+      ordersUl.appendChild(orderLi);
+    });
+
+    document.getElementById('main').appendChild(ordersUl);
+
+    // update the background
+    document.getElementById('main').style.backgroundColor = '#D9AFD9';
+    document.getElementById('main').style.backgroundImage = 'linear-gradient(0deg, #D9AFD9 0%, #97D9E1 100%)';
   });
 
-  document.getElementById('main').appendChild(ordersUl);
+  // loading screen
+  document.getElementById('main').style.backgroundImage = 'url("loading.gif")';
+  document.getElementById('main').style.backgroundRepeat = 'no-repeat';
+  document.getElementById('main').style.backgroundSize = 'cover';
 }
 
-function createViewMoreButton(itemName){
+function finishOrder(id){
+  db.collection('orders').doc(id).delete();
+  //remove this order on the front end
+  let order = document.getElementById(id);
+  order.parentNode.removeChild(order);
+}
+
+function createViewMoreButton(specifics, itemName){
   let viewMoreButton = document.createElement('button');
   viewMoreButton.className = 'pink-btn';
   viewMoreButton.innerText = '...';
   viewMoreButton.id = itemName + '-view-more-button';
   viewMoreButton.onclick = function(){
-    handleClickViewMore(itemName);
+    handleClickViewMore(specifics, itemName);
   };
   return viewMoreButton;
 }
 
 // TODO: implement firebase logic
-function handleClickViewMore(itemName){
+function handleClickViewMore(specifics, itemName){
   //remove summary table + place order button
   var tables = document.getElementsByTagName("TABLE");
   for (var i=tables.length-1; i>=0;i-=1)
@@ -162,13 +245,10 @@ function handleClickViewMore(itemName){
 
   detailedTable.className = 'summary-table';
   detailedTable.id = 'detailed-table';
-
-  let colors = ['Green', 'White', 'Yellow', 'Brown']; // GET request to the item name's summary
-  // let response = axios.get('/summary/' + itemName);
-
-  colors.forEach(function(color){
-    let color_td = createTableCell('td', color);
-    let quantity_td = createTableCell('td', '0'); //load from firebase later on
+  
+  for(let key in specifics){
+    let color_td = createTableCell('td', key);
+    let quantity_td = createTableCell('td', specifics[key]);
 
     let color_tr = document.createElement('tr');
     color_tr.className = 'summary-table-row';
@@ -176,10 +256,11 @@ function handleClickViewMore(itemName){
     color_tr.appendChild(quantity_td);
 
     detailedTable.appendChild(color_tr);
-  });
+  }
 
   document.getElementById('main').appendChild(detailedTable);
   document.getElementById('main').appendChild(exitButton);
+
 }
 
 function createTableCell(type, data){
@@ -270,6 +351,8 @@ function createOrderForm(){
   form.appendChild(createOrderNameInput());
   form.appendChild(createItemHeader('Phone Number'));
   form.appendChild(createOrderPhoneInput());
+  form.appendChild(createItemHeader('Pickup Date'));
+  form.appendChild(createOrderPickupInput());
 
   let itemNames = ['Cakesickles', 'Cookies', 'Cocoa Bombs', 'Marshmallows'];
   itemNames.forEach(function(itemName){
@@ -288,14 +371,42 @@ function createOrderForm(){
     else if(itemName === 'Marshmallows'){
       orderInputs = ['Snowman', 'Cup', 'Raindeer', 'Santa', 'Blush'];
     }
-    form.appendChild(createOrderInputs(orderInputs));
+    form.appendChild(createOrderInputs(orderInputs, itemName));
   });
 
   let submitButton = createSubmitOrderButton();
-  // TODO do REST call to put the order in the orders collection
+  submitButton.type = 'button';
   submitButton.onclick = function(){
-    let order = ''; // create the JSON string to send to firebase as PUT request
+    alert('Thank you for your order! (: ');
+
+    // Construct the JSON string for the REST call to firebase
+    let name = document.getElementById('name').value; // YES, this works!
+    let phone = document.getElementById('phone').value;
+    let pickup = document.getElementById('pickup').value;
+
+    let itemToQuantities = {};
+
+    itemNames.forEach(function(itemName){
+      let unorderedLists = document.getElementById(itemName);
+      let listItems = unorderedLists.children;
+      itemToQuantities[itemName] = {};
+      for(let i = 0; i < listItems.length; i++){
+        let listItem = listItems[i];
+        let input = listItem.children[0];
+        itemToQuantities[itemName][input.id] = Number(input.value);
+      }
+    });
+
+    order = {'name' : name, 'phone' : phone, 'pickup' : pickup, 'items' : itemToQuantities};
+
     placeOrder(order);
+
+    // remove the form and load summary
+    var forms = document.getElementsByTagName("FORM");
+    for (var i=forms.length-1; i>=0;i-=1)
+       if (forms[i]) forms[i].parentNode.removeChild(forms[i]);
+    
+    loadSummary();
   }
 
   form.appendChild(submitButton);
@@ -308,6 +419,7 @@ function createOrderNameInput(){
   let inputListItem = document.createElement('li');
   inputListItem.className = 'place-order-li';
   let input = document.createElement('input');
+  input.id = 'name';
   input.required = true;
   input.className = 'place-order-input place-order-input-name';
   let sideText = document.createElement('p');
@@ -323,6 +435,7 @@ function createOrderPhoneInput(){
   let inputListItem = document.createElement('li');
   inputListItem.className = 'place-order-li';
   let input = document.createElement('input');
+  input.id = 'phone';
   input.required = true;
   input.type = 'tel';
   input.pattern= '[0-9]{3}-[0-9]{3}-[0-9]{4}';
@@ -335,13 +448,32 @@ function createOrderPhoneInput(){
   return inputList;
 }
 
-function createOrderInputs(listOfInputs){
+function createOrderPickupInput(){
   let inputList = document.createElement('ul');
+  let inputListItem = document.createElement('li');
+  inputListItem.className = 'place-order-li';
+  let input = document.createElement('input');
+  input.id = 'pickup';
+  input.required = true;
+  input.pattern= '[0-9]{2}/[0-9]{2}/[0-9]{2}';
+  input.className = 'place-order-input place-order-input-name';
+  let sideText = document.createElement('p');
+  sideText.innerText = 'Pickup Date: MM/DD/YY';
+  inputListItem.appendChild(input);
+  inputListItem.appendChild(sideText);
+  inputList.appendChild(inputListItem);
+  return inputList;
+}
+
+function createOrderInputs(listOfInputs, itemName){
+  let inputList = document.createElement('ul');
+  inputList.id = itemName;
 
   listOfInputs.forEach(function(inputName){
     let inputListItem = document.createElement('li');
     inputListItem.className = 'place-order-li';
     let input = document.createElement('input');
+    input.id = inputName;
     input.type = 'number';
     input.min = '0';
     input.max = '10';
@@ -364,9 +496,8 @@ function createSubmitOrderButton(){
   return button;
 }
 
-// JSON string
 function placeOrder(order){
-  // axios.put('orders/', order)
+  db.collection('orders').add(order);
 }
 
 function createItemHeader(itemName){
@@ -416,7 +547,6 @@ function loadScreen(screen){
          if (buttons[i].innerText === 'Place an Order!' || buttons[i].innerText === 'X')
           buttons[i].parentNode.removeChild(buttons[i]);
 
-      //screen = ORDERS;
       loadOrders();
     }
     else if(password != 'yummy1234' && password.length > 0){
